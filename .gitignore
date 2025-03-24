@@ -1,0 +1,16 @@
+/venv
+.env
+
+__pycache__/
+*.pyc
+*.pyo
+
+*.env
+*.log
+docker-compose.yml
+db-utils.sh
+
+postgres_data/
+soup.py
+soup2.py
+clearbit.py
