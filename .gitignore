@@ -14,3 +14,4 @@ postgres_data/
 soup.py
 soup2.py
 clearbit.py
+startServer.sh

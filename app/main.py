@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Request, UploadFile, File
-from app.api.routes import users
 import uvicorn
 from app.utils.settings import settings
-from app.api.routes import api_router
+from app.routes import api_router
 from fastapi.exceptions import HTTPException, RequestValidationError
 from sqlalchemy.exc import IntegrityError
 from fastapi.responses import JSONResponse
