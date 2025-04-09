@@ -6,20 +6,23 @@ from app.utils.web_scraper import get_name_from_url, get_logo, normalize_and_val
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 from app.utils.pagination import paginate_query
+from app.utils.image_utils import handle_image_upload
 
 class ListingService:
     """ Listing service class """
     def create(self, db: Session, schema):
         """Create a new listing"""
-        # if not is_valid_url(schema.url):
-        #     raise HTTPException(status_code=400, detail="No product with the url")
         valid_url = normalize_and_validate_domain_url(schema.url)
         listing = db.query(Listing).filter(Listing.listing_url == valid_url).first()
         if listing:
             raise HTTPException(status_code=409, detail="Listing already exists")
         name = get_name_from_url(valid_url)
-        logo = get_logo(valid_url)
-        logo = resolve_image_url(valid_url, logo)
+        logo_url = get_logo(valid_url)
+        if logo_url:
+            logo_url = resolve_image_url(valid_url, logo_url)
+            logo = handle_image_upload(logo_url)
+        else:
+            logo = None
 
         listing_data = {
             "name": name,
