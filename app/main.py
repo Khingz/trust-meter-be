@@ -28,6 +28,10 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to Trustmeter!"}
 
+@app.get("/api/v1")
+def read_root():
+    return {"message": "Trustmeter API v1"}
+
 @app.post("/upload")
 async def upload_image_route(file: UploadFile = File(...)):
     file_type = file.content_type

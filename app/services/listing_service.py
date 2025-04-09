@@ -2,22 +2,24 @@ from sqlalchemy.orm import Session
 from app.schemas.listing import ListingCreate, ListingUpdate
 from sqlalchemy.orm import Session
 from app.models.listing import Listing
-from app.utils.web_scraper import get_name_from_url, get_logo, is_valid_url, ensure_valid_url
+from app.utils.web_scraper import get_name_from_url, get_logo, normalize_and_validate_domain_url, resolve_image_url
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
+from app.utils.pagination import paginate_query
 
 class ListingService:
     """ Listing service class """
     def create(self, db: Session, schema):
         """Create a new listing"""
-        if not is_valid_url(schema.url):
-            raise HTTPException(status_code=400, detail="Invalid URL")
-        valid_url = ensure_valid_url(schema.url)
+        # if not is_valid_url(schema.url):
+        #     raise HTTPException(status_code=400, detail="No product with the url")
+        valid_url = normalize_and_validate_domain_url(schema.url)
         listing = db.query(Listing).filter(Listing.listing_url == valid_url).first()
         if listing:
-            raise HTTPException(status_code=400, detail="Listing already exists")
-        name = get_name_from_url(schema.url)
-        logo = get_logo(schema.url)
+            raise HTTPException(status_code=409, detail="Listing already exists")
+        name = get_name_from_url(valid_url)
+        logo = get_logo(valid_url)
+        logo = resolve_image_url(valid_url, logo)
 
         listing_data = {
             "name": name,
@@ -43,15 +45,16 @@ class ListingService:
         """Delete a listing"""
         pass
     
-    def get_all(self, db: Session):
+    def get_all(self, db: Session, page):
         """Get all listings"""
-        listings = db.query(Listing).all()
-        serialized_listing = jsonable_encoder(listings)
-        return serialized_listing
+        return paginate_query(db, model=Listing, page=page)
 
     
-    def get_by_id(self, db: Session, id: int):
+    def get_by_id(self, db: Session, id: str):
         """Get a listing by Id"""
-        pass
+        listing = db.query(Listing).filter(Listing.id == id).first()
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        return jsonable_encoder(listing)
 
 listing_service = ListingService()

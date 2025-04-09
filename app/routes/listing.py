@@ -8,9 +8,9 @@ from app.schemas.listing import ListingCreate
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
 @listings.get("/", status_code=status.HTTP_200_OK)
-def get_listings(db: Session = Depends(get_db),):
+def get_listings(db: Session = Depends(get_db), page: int = 1 ):
     """Endpoint to get all listings"""
-    listings = listing_service.get_all(db=db)
+    listings = listing_service.get_all(db=db, page=page)
 
     response = JSONResponse(
         status_code=200,
@@ -32,6 +32,20 @@ def add_listing(schema: ListingCreate, db: Session = Depends(get_db)):
             "status_code": 201,
             "message": "Listing added successfully",
             "data": new_listing
+        }
+    )
+    return response
+
+@listings.get("/{id}", status_code=status.HTTP_200_OK)
+def get_listing_by_id(id: str, db: Session = Depends(get_db)):
+    """Endpoint to get a listing by Id"""
+    listing = listing_service.get_by_id(db=db, id=id)
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "status_code": 200,
+            "message": "Listing fetched successfully",
+            "data": listing
         }
     )
     return response

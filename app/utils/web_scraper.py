@@ -1,50 +1,37 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-import re
+from urllib.parse import urlparse, urljoin
+from fastapi.exceptions import HTTPException
 
 from urllib.parse import urlparse
 
-def is_valid_url(url: str) -> bool:
+def normalize_and_validate_domain_url(url_string: str):
     try:
-        url = url.strip()
-        if not urlparse(url).scheme:
+        url = url_string.strip()
+        if not url.startswith(('http://', 'https://')):
             url = f"https://{url}"
         parsed = urlparse(url)
         if not parsed.netloc:
-            return False
-        domain_regex = r"^(?!\-)([A-Za-z0-9-]{1,63}(?<!\-)\.)+[A-Za-z]{2,6}$"
-        if not re.match(domain_regex, parsed.netloc):
-            return False
-        if parsed.scheme not in ["http", "https"]:
-            return False
-        return True
-    except Exception:
-        return False
-
-def ensure_valid_url(url: str) -> str:
-    url = url.strip()
-    parsed_url = urlparse(url)
-    if not parsed_url.scheme:
-        url = f"https://{url}"
-        parsed_url = urlparse(url)
-    if not parsed_url.netloc:
-        raise ValueError(f"Invalid URL: {url}")
-    domain = parsed_url.netloc
-    if domain.startswith("www."):
-        domain = domain[4:]
-    url = f"{parsed_url.scheme}://{domain}{parsed_url.path}"
-    return url
+            raise ValueError(f"Invalid URL: {url}")
+        domain = parsed.netloc
+        if domain.startswith("www."):
+            domain = domain[4:]
+        base_url = f"{parsed.scheme}://{domain}/"
+        response = requests.head(base_url, allow_redirects=True, timeout=5)
+        if response.status_code >= 400:
+            raise ValueError(f"Invalid Domain: {base_url}")
+        return base_url
+    except requests.RequestException:
+        raise HTTPException(status_code=400, detail=f"Invalid domain: {url_string}")
 
 
 def get_name_from_url(url):
-    valid_url = ensure_valid_url(url)
-    parsed_url = urlparse(valid_url)
-    print(parsed_url)
+    parsed_url = urlparse(url)
     domain = parsed_url.netloc
+    print(domain)
     name = domain.split('.')[0]
     return name
-
 
 
 def web_scrape_logo(url):
@@ -113,33 +100,23 @@ def web_scrape_logo(url):
     except Exception as e:
         print(f"Error scraping logo: {e}")
         return None
-    
-def get_logo_from_clearbit(domain):
-    try:
-        url = f"https://logo.clearbit.com/{domain}"
-        
-        response = requests.get(url, timeout=10)
-        
-        if response.status_code == 200:
-            # Return the logo URL
-            return url
-        else:
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching logo: {e}")
-        return None
 
 
 def get_logo(url):
     """ Attempt to fetch a brand's logo from a given URL """
     try:
-        url = ensure_valid_url(url)
+        url = normalize_and_validate_domain_url(url)
     except ValueError as e:
-        print(f"Invalid URL: {e}")
         return None
-
     logo_url = web_scrape_logo(url)
-    if not logo_url:
-        logo_url = get_logo_from_clearbit(url)
 
     return logo_url
+
+def is_relative_url(url: str) -> bool:
+    parsed = urlparse(url)
+    return not parsed.scheme and not parsed.netloc
+
+def resolve_image_url(base_url: str, image_url: str) -> str:
+    if is_relative_url(image_url):
+        return urljoin(base_url, image_url)
+    return image_url
