@@ -13,23 +13,31 @@ def normalize_and_validate_domain_url(url_string: str):
             url = f"https://{url}"
         parsed = urlparse(url)
         if not parsed.netloc:
-            raise ValueError(f"Invalid URL: {url}")
+            raise HTTPException(status_code=400, detail=f"Invalid domain: {url_string}")
+        
+        
         domain = parsed.netloc
         if domain.startswith("www."):
             domain = domain[4:]
         base_url = f"{parsed.scheme}://{domain}/"
-        response = requests.head(base_url, allow_redirects=True, timeout=5)
-        if response.status_code >= 400:
-            raise ValueError(f"Invalid Domain: {base_url}")
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+        }
+
+        response = requests.head(base_url, allow_redirects=True, timeout=10, headers=headers)
+        if response.status_code >= 400 and response.status_code not in [401, 403, 400]:
+            raise HTTPException(status_code=400, detail=f"Invalid domain: {url_string}")
+
         return base_url
-    except requests.RequestException:
+
+    except requests.RequestException as e:
         raise HTTPException(status_code=400, detail=f"Invalid domain: {url_string}")
 
 
 def get_name_from_url(url):
     parsed_url = urlparse(url)
     domain = parsed_url.netloc
-    print(domain)
     name = domain.split('.')[0]
     return name
 
@@ -116,7 +124,9 @@ def is_relative_url(url: str) -> bool:
     parsed = urlparse(url)
     return not parsed.scheme and not parsed.netloc
 
-def resolve_image_url(base_url: str, image_url: str) -> str:
+def resolve_image_url(base_url: str, image_url: str):
+    if image_url.startswith("//"):
+        return f"https:{image_url}"
     if is_relative_url(image_url):
         return urljoin(base_url, image_url)
     return image_url

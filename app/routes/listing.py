@@ -1,16 +1,17 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Query
 from app.services.listing_service import listing_service
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.schemas.listing import ListingCreate
+from typing import Optional
 
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
 @listings.get("/", status_code=status.HTTP_200_OK)
-def get_listings(db: Session = Depends(get_db), page: int = 1 ):
+def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None) ):
     """Endpoint to get all listings"""
-    listings = listing_service.get_all(db=db, page=page)
+    listings = listing_service.get_all(db=db, page=page, search_by=search_by, search_term=search_term)
 
     response = JSONResponse(
         status_code=200,
@@ -25,13 +26,13 @@ def get_listings(db: Session = Depends(get_db), page: int = 1 ):
 @listings.post("/", status_code=status.HTTP_201_CREATED)
 def add_listing(schema: ListingCreate, db: Session = Depends(get_db)):
     """Endpoint to add a new listing"""
-    new_listing = listing_service.create(db=db, schema=schema)
+    listing = listing_service.create(db=db, schema=schema)
     response = JSONResponse(
         status_code=201,
         content={
             "status_code": 201,
             "message": "Listing added successfully",
-            "data": new_listing
+            "data": listing
         }
     )
     return response

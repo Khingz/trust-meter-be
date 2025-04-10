@@ -20,7 +20,7 @@ upload_options = {
    ]
 }
 
-allowed_formats = {"image/jpeg", "image/png", "image/jpg"}
+allowed_formats = {"image/jpeg", "image/png", "image/jpg", "image/svg+xml"}
 
 def get_image_public_id(image_url: str):
     """Get public id from image url"""
@@ -30,12 +30,14 @@ def get_image_public_id(image_url: str):
 def upload_image_to_cloudinary(file: bytes, file_type: str, folder: str = None):
     """Upload image to cloudinary"""
     if file_type not in allowed_formats:
-        raise HTTPException(status_code=400, detail="Invalid file format, Allowed types: jpeg, jpg, png")
+        # raise HTTPException(status_code=400, detail="Invalid file format, Allowed types: jpeg, jpg, png")
+        return None
+        
     if folder:
         upload_options["folder"] = folder
     try:
         response = upload(file, **upload_options)
         return response["secure_url"]
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=400, detail=str(e))
+        # raise HTTPException(status_code=400, detail=str(e))
+        return None

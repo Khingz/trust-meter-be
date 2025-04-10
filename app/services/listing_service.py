@@ -15,9 +15,16 @@ class ListingService:
         valid_url = normalize_and_validate_domain_url(schema.url)
         listing = db.query(Listing).filter(Listing.listing_url == valid_url).first()
         if listing:
-            raise HTTPException(status_code=409, detail="Listing already exists")
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "message": "Listing already exists",
+                    "listing": jsonable_encoder(listing)
+                }
+            )
         name = get_name_from_url(valid_url)
         logo_url = get_logo(valid_url)
+        print(logo_url)
         if logo_url:
             logo_url = resolve_image_url(valid_url, logo_url)
             logo = handle_image_upload(logo_url)
@@ -26,9 +33,10 @@ class ListingService:
 
         listing_data = {
             "name": name,
-            "description": "Temp description",
+            "description": f"This is {name} listing, designed to enhance your experience/needs with top-notch quality, seamless functionality, and convenience for daily use.",
             "image": logo,
             "listing_url": valid_url,
+            "slug": name,
         }
         new_listing = Listing(**listing_data)
         db.add(new_listing)
@@ -48,9 +56,9 @@ class ListingService:
         """Delete a listing"""
         pass
     
-    def get_all(self, db: Session, page):
+    def get_all(self, db: Session, page, search_by, search_term):
         """Get all listings"""
-        return paginate_query(db, model=Listing, page=page)
+        return paginate_query(db, model=Listing, page=page, search_by=search_by, search_term=search_term)
 
     
     def get_by_id(self, db: Session, id: str):

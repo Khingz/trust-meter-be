@@ -18,5 +18,5 @@ def handle_image_upload(image_url):
     """ Handle image download and upload to cloud service"""
     image_data, mime_type = convert_image_to_bytes(image_url)
     print(image_data)
-    img_url = upload_image_to_cloudinary(image_data, mime_type)
+    img_url = upload_image_to_cloudinary(image_data, mime_type, folder="listings_logo")
     return img_url  
