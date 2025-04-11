@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Boolean, Text
+from sqlalchemy import Column, String, Text
 from app.models.baseModel import BaseModel
+from sqlalchemy.orm import relationship
 
 class Listing(BaseModel):
     __tablename__ = "listings"
@@ -10,3 +11,5 @@ class Listing(BaseModel):
     listing_url = Column(String)
     image = Column(String, nullable=True)
     slug = Column(String, unique=True, index=True)
+    
+    reviews = relationship("Review", back_populates="listing", cascade="all, delete")

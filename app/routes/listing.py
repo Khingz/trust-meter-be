@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.schemas.listing import ListingCreate
 from typing import Optional
+from app.utils.auth import verify_access_token
 
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
@@ -24,7 +25,7 @@ def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), sear
     return response
 
 @listings.post("/", status_code=status.HTTP_201_CREATED)
-def add_listing(schema: ListingCreate, db: Session = Depends(get_db)):
+def add_listing(schema: ListingCreate, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):
     """Endpoint to add a new listing"""
     listing = listing_service.create(db=db, schema=schema)
     response = JSONResponse(
