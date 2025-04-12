@@ -6,7 +6,7 @@ def paginate_query(
     db: Session,
     model,
     page: int = 1,
-    page_size: int = 10,
+    page_size: int = 30,
     filters: dict = None,
     search_by: str = None,
     search_term: str = None

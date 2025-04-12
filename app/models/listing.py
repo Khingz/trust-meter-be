@@ -12,4 +12,4 @@ class Listing(BaseModel):
     image = Column(String, nullable=True)
     slug = Column(String, unique=True, index=True)
     
-    reviews = relationship("Review", back_populates="listing", cascade="all, delete")
+    reviews = relationship("Review", back_populates="listings", cascade="all, delete")

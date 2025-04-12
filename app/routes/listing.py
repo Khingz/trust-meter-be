@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status, Depends, Query
 from app.services.listing_service import listing_service
+from app.services.review_service import review_service
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -10,7 +11,7 @@ from app.utils.auth import verify_access_token
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
 @listings.get("/", status_code=status.HTTP_200_OK)
-def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None) ):
+def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None)):
     """Endpoint to get all listings"""
     listings = listing_service.get_all(db=db, page=page, search_by=search_by, search_term=search_term)
 
@@ -52,4 +53,15 @@ def get_listing_by_id(id: str, db: Session = Depends(get_db)):
     )
     return response
 
-    
+@listings.get("/{listing_id}/reviews/stats")
+def get_reviews_stats(listing_id, db: Session = Depends(get_db)):
+    stats = review_service.get_listing_review_stats(db=db, listing_id=listing_id)
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "status_code": 200,
+            "message": "Stats fetched successfully",
+            "data": stats
+        }
+    )
+    return response 
