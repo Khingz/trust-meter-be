@@ -37,7 +37,7 @@ class ReviewService:
     
     def get_all(self, db: Session, page, search_by, search_term, filters):
         """Get all reviews"""
-        return paginate_query(db, model=Review, page=page, search_by=search_by, search_term=search_term, filters=filters)
+        return paginate_query(db, model=Review, page=page, search_by=search_by, search_term=search_term, filters=filters, joined_loads=[Review.listings])
     
     def get_by_id(self, db: Session, id: str):
         """Get a review by Id"""
@@ -54,13 +54,13 @@ class ReviewService:
             average_rating = round(float(average_rating), 2)
         
         rating_counts = {}
-        for rating in range(6):
+        for rating in range(5):
             count = db.query(func.count(Review.id)).filter(Review.listing_id == listing_id, Review.rating == rating).scalar()
             rating_counts[rating] = count
         
         return {
             "total_reviews": total_reviews,
-            "average_rating": float(average_rating) if average_rating is not None else 0,
+            "average_rating": average_rating,
             "rating_counts": rating_counts
         }
 

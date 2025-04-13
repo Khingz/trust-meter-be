@@ -7,6 +7,7 @@ from app.db.database import get_db
 from app.schemas.listing import ListingCreate
 from typing import Optional
 from app.utils.auth import verify_access_token
+from uuid import UUID
 
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
@@ -40,7 +41,7 @@ def add_listing(schema: ListingCreate, db: Session = Depends(get_db), current_us
     return response
 
 @listings.get("/{id}", status_code=status.HTTP_200_OK)
-def get_listing_by_id(id: str, db: Session = Depends(get_db)):
+def get_listing_by_id(id: UUID, db: Session = Depends(get_db)):
     """Endpoint to get a listing by Id"""
     listing = listing_service.get_by_id(db=db, id=id)
     response = JSONResponse(

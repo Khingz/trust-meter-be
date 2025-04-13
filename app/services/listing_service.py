@@ -7,6 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 from app.utils.pagination import paginate_query
 from app.utils.image_utils import handle_image_upload
+from uuid import UUID
 
 class ListingService:
     """ Listing service class """
@@ -61,8 +62,9 @@ class ListingService:
         return paginate_query(db, model=Listing, page=page, search_by=search_by, search_term=search_term)
 
     
-    def get_by_id(self, db: Session, id: str):
+    def get_by_id(self, db: Session, id: UUID):
         """Get a listing by Id"""
+        
         listing = db.query(Listing).filter(Listing.id == id).first()
         if not listing:
             raise HTTPException(status_code=404, detail="Listing not found")

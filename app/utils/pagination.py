@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 
@@ -9,9 +9,14 @@ def paginate_query(
     page_size: int = 30,
     filters: dict = None,
     search_by: str = None,
-    search_term: str = None
+    search_term: str = None,
+    joined_loads: list = None
 ):
     query = db.query(model)
+    
+    if joined_loads:
+        for relation in joined_loads:
+            query = query.options(joinedload(relation))
 
     # Apply filters (e.g., {"status": "active"})
     if filters:
