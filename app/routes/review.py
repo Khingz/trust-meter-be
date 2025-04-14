@@ -13,10 +13,10 @@ import json
 reviews = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 @reviews.get("/", status_code=status.HTTP_200_OK)
-def get_reviews(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None), filters = Query({}) ):
+def get_reviews(db: Session = Depends(get_db), page: int = Query(1, ge=1), page_size: int = Query(30), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None), filters = Query({}) ):
     """Endpoint to get all Reviews"""
     filters_dict = json.loads(filters) if filters else {}
-    listings = review_service.get_all(db=db, page=page, search_by=search_by, search_term=search_term, filters=filters_dict)
+    listings = review_service.get_all(db=db, page=page, page_size=page_size, search_by=search_by, search_term=search_term, filters=filters_dict)
 
     response = JSONResponse(
         status_code=200,

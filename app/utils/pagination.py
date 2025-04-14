@@ -10,9 +10,12 @@ def paginate_query(
     filters: dict = None,
     search_by: str = None,
     search_term: str = None,
-    joined_loads: list = None
+    joined_loads: list = None,
+    order_by: str = "created_at",
+    descending: bool = True
 ):
     query = db.query(model)
+    
     
     if joined_loads:
         for relation in joined_loads:
@@ -34,6 +37,14 @@ def paginate_query(
             query = query.filter(column.ilike(f"%{search_term}%"))
         else:
             raise HTTPException(status_code=400, detail=f"Invalid search field: {search_by}")
+        
+    if order_by:
+        column = getattr(model, order_by, None)
+        if column is not None:
+            query = query.order_by(column.desc() if descending else column.asc())
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid order_by field: {order_by}")
+
 
     total_count = query.count()
     total_pages = (total_count + page_size - 1) // page_size

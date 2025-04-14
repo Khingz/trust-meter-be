@@ -13,10 +13,11 @@ def convert_image_to_bytes(image_url: str):
         image_data.seek(0)
         return image_data, mime_type
     else:
-        raise ValueError(f"Failed to download image from {image_url}")
+        return (None, None)
 def handle_image_upload(image_url):
     """ Handle image download and upload to cloud service"""
     image_data, mime_type = convert_image_to_bytes(image_url)
-    print(image_data)
-    img_url = upload_image_to_cloudinary(image_data, mime_type, folder="listings_logo")
-    return img_url  
+    if image_data is not None:
+        img_url = upload_image_to_cloudinary(image_data, mime_type, folder="listings_logo")
+        return img_url  
+    return None
