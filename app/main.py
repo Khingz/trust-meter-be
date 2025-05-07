@@ -16,6 +16,8 @@ origins = [
     settings.CLIENT_URL,
 ]
 
+print(settings.CLIENT_URL)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -32,14 +34,6 @@ def read_root():
 def read_root():
     return {"message": "Trustmeter API v1"}
 
-@app.post("/upload")
-async def upload_image_route(file: UploadFile = File(...)):
-    file_type = file.content_type
-    file = await file.read()
-    # image_url = upload_image_to_cloudinary(file=file, file_type=file_type, folder="trustmeter")
-    url = get_image_public_id("https://res.cloudinary.com/dbqtbvqyq/image/upload/v1738077455/gmsmubpdwxdhjatg4peq.png")
-    print(url)
-    # return {"image_url": image_url}
 
 app.include_router(api_router)
 

@@ -17,7 +17,7 @@ def get_reviews(db: Session = Depends(get_db), page: int = Query(1, ge=1), page_
     """Endpoint to get all Reviews"""
     filters_dict = json.loads(filters) if filters else {}
     listings = review_service.get_all(db=db, page=page, page_size=page_size, search_by=search_by, search_term=search_term, filters=filters_dict)
-
+    
     response = JSONResponse(
         status_code=200,
         content={
