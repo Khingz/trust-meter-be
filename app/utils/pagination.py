@@ -45,7 +45,6 @@ def paginate_query(
         else:
             raise HTTPException(status_code=400, detail=f"Invalid order_by field: {order_by}")
 
-
     total_count = query.count()
     total_pages = (total_count + page_size - 1) // page_size
     items = query.offset((page - 1) * page_size).limit(page_size).all()
