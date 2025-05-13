@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.user import RegisterUserInput, LoginUserInput, PasswordResetInput
+from app.schemas.user import RegisterUserInput, LoginUserInput, PasswordResetInput, PasswordUpdate
 from app.models.user import User
 from fastapi import HTTPException
 from app.utils.auth import hash_password, verify_password, create_password_token, verify_password_token
@@ -67,9 +67,33 @@ class UserService:
         }
     
     def reset_password(self, db: Session, schema: PasswordResetInput):
-        """"""
+        """Reset user password """
         user = verify_password_token(schema.token, db)
         hashed_password = hash_password(password=schema.password)
+        user.password = hashed_password
+        user.password_reset_token = None
+        db.commit()
+        db.refresh(user)
+        return {
+            "name": user.name,
+            "email": user.email
+        }
+        
+    def change_password(self, db: Session, schema: PasswordUpdate, user):
+        """Change user password"""
+        if schema.old_password == schema.new_password:
+            raise HTTPException(
+                status_code=400,
+                detail="Old pssword and new password cannot be the same",
+            )
+            
+        if not verify_password(plain_password=schema.old_password, hashed_password=user.password):
+            raise HTTPException(
+                status_code=400,
+                detail="Incorrect old password",
+            )
+            
+        hashed_password = hash_password(password=schema.new_password)
         user.password = hashed_password
         user.password_reset_token = None
         db.commit()

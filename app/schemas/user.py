@@ -47,4 +47,8 @@ class PasswordResetInput(BaseModel):
     password: Annotated[
         str, StringConstraints(min_length=4, max_length=64, strip_whitespace=True)
     ]
+    
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
 

@@ -57,7 +57,7 @@ class ListingService:
         """Delete a listing"""
         pass
     
-    def get_all(self, db: Session, page, search_by, search_term, page_size):
+    def get_all(self, db: Session, page, search_by, search_term, page_size, filters):
         """Get all listings"""
         return paginate_query(db, model=Listing, page=page, search_by=search_by, search_term=search_term, page_size=page_size)
 

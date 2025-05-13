@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, RelationshipProperty
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
+from sqlalchemy.inspection import inspect
 
 def paginate_query(
     db: Session,
@@ -26,7 +27,16 @@ def paginate_query(
         for key, value in filters.items():
             column = getattr(model, key, None)
             if column is not None:
-                query = query.filter(column == value)
+                mapper = inspect(model)
+                attr = mapper.attrs.get(key)
+
+                if key in mapper.relationships:
+                    # Handle relationships like Review.user.has(id=value)
+                    related_model = mapper.relationships[key].mapper.class_
+                    primary_key = list(related_model.__table__.primary_key.columns)[0].name
+                    query = query.filter(column.has(**{primary_key: value}))
+                else:
+                    query = query.filter(column == value)
             else:
                 raise HTTPException(status_code=400, detail=f"Invalid filter field: {key}")
 

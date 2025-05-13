@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, status, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
-from app.schemas.user import RegisteredUserResponse, RegisterUserInput, LoginUserInput, PasswordResetInput, PasswordResetRequestInput
+from app.schemas.user import RegisteredUserResponse, RegisterUserInput, LoginUserInput, PasswordResetInput, PasswordResetRequestInput, PasswordUpdate
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -168,4 +168,19 @@ def reset_password(background_tasks: BackgroundTasks, reset_schema: PasswordRese
     )
 
     return response;
+
+@auth.patch("/change-password", status_code=status.HTTP_200_OK)
+def change_password(password_schema: PasswordUpdate, current_user: dict = Depends(verify_access_token), db: Session = Depends(get_db)):
+    "Change current user password"
+    response_data = user_service.change_password(db=db, schema=password_schema, user=current_user)
+    response = JSONResponse(
+        status_code=200,
+        content= {
+            "status_code": 200,
+            "message": "Password changed successfully",
+            "data": response_data
+        }
+    )
+    return response
+    
 
