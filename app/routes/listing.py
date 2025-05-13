@@ -12,9 +12,9 @@ from uuid import UUID
 listings = APIRouter(prefix="/listings", tags=["Listings"])
 
 @listings.get("/", status_code=status.HTTP_200_OK)
-def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None), page_size: Optional[int] = Query(30, ge=1)):
+def get_listings(db: Session = Depends(get_db), page: int = Query(1, ge=1), search_by: Optional[str] = Query(None), search_term: Optional[str] = Query(None), page_size: Optional[int] = Query(30, ge=1), filters = Query({})):
     """Endpoint to get all listings"""
-    listings = listing_service.get_all(db=db, page=page, search_by=search_by, search_term=search_term, page_size=page_size)
+    listings = listing_service.get_all(db=db, page=page, search_by=search_by, search_term=search_term, page_size=page_size, filters=filters)
 
     response = JSONResponse(
         status_code=200,
