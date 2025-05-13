@@ -51,4 +51,7 @@ class PasswordResetInput(BaseModel):
 class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
+    
+class UserUpdate(BaseModel):
+    name: str
 

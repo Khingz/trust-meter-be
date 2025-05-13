@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.user import RegisterUserInput, LoginUserInput, PasswordResetInput, PasswordUpdate
+from app.schemas.user import RegisterUserInput, LoginUserInput, PasswordResetInput, PasswordUpdate, UserUpdate
 from app.models.user import User
 from fastapi import HTTPException
 from app.utils.auth import hash_password, verify_password, create_password_token, verify_password_token
@@ -102,6 +102,14 @@ class UserService:
             "name": user.name,
             "email": user.email
         }
+        
+    def update_user(self, db: Session, schema: UserUpdate, user):
+        """Update User info """
+        user = self.get_user_by_id(db=db, id=user.id)
+        user.name = schema.name
+        db.commit()
+        db.refresh(user)
+        return user
     
         
 
