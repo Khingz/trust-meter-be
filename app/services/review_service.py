@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.review import Review
+from app.models.like import Like
 from app.schemas.reviews import ReviewUpdate
 from app.utils.pagination import paginate_query
 from fastapi import HTTPException
@@ -63,5 +64,18 @@ class ReviewService:
             "average_rating": average_rating if average_rating else 0,
             "rating_counts": rating_counts
         }
+        
+    def toggle_like(self, db: Session, review_id: int, user_id: str):
+        """Like or unlike a review"""
+        existing = db.query(Like).filter_by(user_id=user_id, review_id=review_id).first()
+        if existing:
+            db.delete(existing)
+            db.commit()
+            return {"message": "Unliked"}
+        else:
+            like = Like(user_id=user_id.id, review_id=review_id)
+            db.add(like)
+            db.commit()
+            return {"message": "Liked"}
 
 review_service = ReviewService()

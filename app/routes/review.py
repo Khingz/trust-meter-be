@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends, Query
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.reviews import ReviewCreate
+from app.schemas.reviews import ReviewCreate, ReviewCommentCreate, ReviewCommentResponse
 from typing import Optional
 from app.services.review_service import review_service
 from fastapi.responses import JSONResponse
@@ -52,3 +52,17 @@ def get_review_by_id(id: str, db: Session = Depends(get_db)):
         "data": {"message": "Listing fetched successfully"}
     }
 
+
+@reviews.post("/{id}/like")
+def toggle_like(review_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):
+    """Endpoint to like or unlike a review"""
+    review = review_service.toggle_like(db=db, review_id=review_id, user_id=current_user.id)
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "status_code": 200,
+            "message": "Review liked successfully",
+            "data": review
+        }
+    )
+    return response

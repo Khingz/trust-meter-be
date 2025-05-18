@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from app.models.baseModel import BaseModel
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,4 +13,5 @@ class Review(BaseModel):
     
     listings = relationship("Listing", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+    comments = relationship("ReviewComment", backref="review", cascade="all, delete-orphan")
     

@@ -22,3 +22,11 @@ class ReviewCreate(BaseModel):
 class ReviewUpdate(ReviewBase):
     pass
 
+
+class ReviewCommentCreate(BaseModel):
+    content: str
+
+class ReviewCommentResponse(BaseModel):
+    id: int
+    user_id: int
+    content: str

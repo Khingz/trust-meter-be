@@ -16,8 +16,6 @@ origins = [
     settings.CLIENT_URL,
 ]
 
-print(settings.CLIENT_URL)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
