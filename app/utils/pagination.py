@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session, joinedload, RelationshipProperty
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 from sqlalchemy.inspection import inspect
+import json
 
 def paginate_query(
     db: Session,
@@ -23,7 +24,9 @@ def paginate_query(
             query = query.options(joinedload(relation))
 
     # Apply filters (e.g., {"status": "active"})
+    filters = json.loads(filters)
     if filters:
+        print(f"filters: {filters}, type: {type(filters)}")
         for key, value in filters.items():
             column = getattr(model, key, None)
             if column is not None:

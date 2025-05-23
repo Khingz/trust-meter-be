@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.review import Review
+from app.models.comment import ReviewComment
 from app.models.like import Like
 from app.schemas.reviews import ReviewUpdate
 from app.utils.pagination import paginate_query
@@ -65,17 +66,35 @@ class ReviewService:
             "rating_counts": rating_counts
         }
         
-    def toggle_like(self, db: Session, review_id: int, user_id: str):
+    def toggle_like(self, db: Session, target_id: int, user_id: UUID):
         """Like or unlike a review"""
-        existing = db.query(Like).filter_by(user_id=user_id, review_id=review_id).first()
+        existing = db.query(Like).filter_by(user_id=user_id, target_id=target_id).first()
         if existing:
             db.delete(existing)
             db.commit()
             return {"message": "Unliked"}
         else:
-            like = Like(user_id=user_id.id, review_id=review_id)
+            like = Like(user_id=user_id, target_id=target_id, target_type="review")
             db.add(like)
             db.commit()
             return {"message": "Liked"}
+        
+    def add_comment(self, db: Session, review_id: str, schema, user_id: str):
+        """Add a comment to a review"""
+        review = db.query(Review).filter(Review.id == review_id).first()
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+        
+        comment = ReviewComment(
+            user_id=user_id,
+            review_id=review_id,
+            content=schema.content
+        )
+        
+        db.add(comment)
+        db.commit()
+        db.refresh(comment)
+        
+        return jsonable_encoder(comment)
 
 review_service = ReviewService()

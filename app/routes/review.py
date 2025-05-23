@@ -7,7 +7,7 @@ from app.services.review_service import review_service
 from fastapi.responses import JSONResponse
 from app.utils.auth import verify_access_token
 import json
-
+from uuid import UUID
 
 
 reviews = APIRouter(prefix="/reviews", tags=["Reviews"])
@@ -43,25 +43,30 @@ def add_review(schema: ReviewCreate, db: Session = Depends(get_db), current_user
     )
     return response
 
-@reviews.get("/{id}", status_code=status.HTTP_200_OK)
-def get_review_by_id(id: str, db: Session = Depends(get_db)):
-    """Endpoint to get a review by Id"""
-    return {
-        "status_code": 200,
-        "message": "Review fetched successfully",
-        "data": {"message": "Listing fetched successfully"}
-    }
-
 
 @reviews.post("/{id}/like")
-def toggle_like(review_id: int, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):
+def toggle_like(id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):
     """Endpoint to like or unlike a review"""
-    review = review_service.toggle_like(db=db, review_id=review_id, user_id=current_user.id)
+    review = review_service.toggle_like(db=db, target_id=id, user_id=current_user.id)
     response = JSONResponse(
         status_code=200,
         content={
             "status_code": 200,
             "message": "Review liked successfully",
+            "data": review
+        }
+    )
+    return response
+
+@reviews.post("/{id}/comment", status_code=status.HTTP_201_CREATED)
+def add_comment(id: UUID, schema: ReviewCommentCreate, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):
+    """Endpoint to add a comment to a review"""
+    review = review_service.add_comment(db=db, target_id=id, schema=schema, user_id=current_user.id)
+    response = JSONResponse(
+        status_code=201,
+        content={
+            "status_code": 201,
+            "message": "Comment added successfully",
             "data": review
         }
     )

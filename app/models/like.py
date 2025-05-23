@@ -15,4 +15,4 @@ class Like(BaseModel):
         UniqueConstraint("user_id", "target_id", "target_type", name="unique_user_like"),
     )
 
-    user = relationship("User", back_populates="likes")
+    user = relationship("User")

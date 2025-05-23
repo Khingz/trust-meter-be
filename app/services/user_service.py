@@ -25,7 +25,6 @@ class UserService:
     def login_user(self, db: Session, schema: LoginUserInput):
         """Login a user"""
         user = db.query(User).filter(User.email == schema.email).first()
-        print(user)
         if not user:
             raise HTTPException(
                 status_code=400,
