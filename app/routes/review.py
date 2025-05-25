@@ -43,6 +43,19 @@ def add_review(schema: ReviewCreate, db: Session = Depends(get_db), current_user
     )
     return response
 
+@reviews.get("/{id}", status_code=status.HTTP_200_OK)
+def get_review_by_id(id: str, db: Session = Depends(get_db)):
+    """Endpoint to get a review by Id"""
+    review = review_service.get_by_id(db=db, id=id)
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "status_code": 200,
+            "message": "Review fetched successfully",
+            "data": review
+        }
+    )
+    return response
 
 @reviews.post("/{id}/like")
 def toggle_like(id: UUID, db: Session = Depends(get_db), current_user: dict = Depends(verify_access_token)):

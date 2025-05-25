@@ -12,12 +12,6 @@ class Review(BaseModel):
     rating = Column(Integer, nullable=False)
     comment = Column(String, nullable=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    
-    likes = relationship(
-        "Like",
-        primaryjoin="and_(Like.target_id == Review.id, Like.target_type == 'review')",
-        viewonly=True
-    )
     likes = relationship(
         "Like",
         primaryjoin=lambda: and_(

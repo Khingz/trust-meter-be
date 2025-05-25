@@ -3,6 +3,77 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 from sqlalchemy.inspection import inspect
 import json
+from typing import List, Dict, Any, Type
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+
+
+
+
+def apply_joins(query, model, joined_loads):
+    if not joined_loads:
+        return query
+
+    mapper = inspect(model)
+
+    for relation in joined_loads:
+        if not isinstance(relation, InstrumentedAttribute):
+            raise HTTPException(status_code=400, detail=f"joined_loads must be InstrumentedAttribute, got {type(relation)}")
+
+        # Validate relation belongs to model's attributes
+        if relation.key not in mapper.attrs:
+            raise HTTPException(status_code=400, detail=f"Invalid join attribute: {relation.key}")
+
+        # Use relation (InstrumentedAttribute) directly in joinedload
+        query = query.options(joinedload(relation))
+
+    return query
+
+def apply_filters(query, model, filters: Dict[str, Any]):
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+    
+    if not filters:
+        return query
+
+    mapper = inspect(model)
+    
+    for key, value in filters.items():
+        if not hasattr(model, key):
+            raise HTTPException(status_code=400, detail=f"Invalid filter field: {key}")
+        
+        column = getattr(model, key)
+        
+        if key in mapper.relationships:
+            # e.g., Review.user.has(id=value)
+            related_model = mapper.relationships[key].mapper.class_
+            pk = list(related_model.__table__.primary_key.columns)[0].name
+            query = query.filter(column.has(**{pk: value}))
+        else:
+            query = query.filter(column == value)
+    
+    return query
+
+def apply_search(query, model, search_by: str, search_term: str):
+    if not search_by or not search_term:
+        return query
+
+    if not hasattr(model, search_by):
+        raise HTTPException(status_code=400, detail=f"Invalid search field: {search_by}")
+
+    column = getattr(model, search_by)
+    return query.filter(column.ilike(f"%{search_term}%"))
+
+
+def apply_ordering(query, model, order_by: str, descending: bool = True):
+    if not order_by:
+        return query
+
+    if not hasattr(model, order_by):
+        raise HTTPException(status_code=400, detail=f"Invalid order_by field: {order_by}")
+
+    column = getattr(model, order_by)
+    return query.order_by(column.desc() if descending else column.asc())
+    
 
 def paginate_query(
     db: Session,
@@ -17,46 +88,11 @@ def paginate_query(
     descending: bool = True
 ):
     query = db.query(model)
-    
-    
-    if joined_loads:
-        for relation in joined_loads:
-            query = query.options(joinedload(relation))
-
-    # Apply filters (e.g., {"status": "active"})
-    filters = json.loads(filters)
-    if filters:
-        print(f"filters: {filters}, type: {type(filters)}")
-        for key, value in filters.items():
-            column = getattr(model, key, None)
-            if column is not None:
-                mapper = inspect(model)
-                attr = mapper.attrs.get(key)
-
-                if key in mapper.relationships:
-                    # Handle relationships like Review.user.has(id=value)
-                    related_model = mapper.relationships[key].mapper.class_
-                    primary_key = list(related_model.__table__.primary_key.columns)[0].name
-                    query = query.filter(column.has(**{primary_key: value}))
-                else:
-                    query = query.filter(column == value)
-            else:
-                raise HTTPException(status_code=400, detail=f"Invalid filter field: {key}")
-
-    # Apply search
-    if search_by and search_term:
-        column = getattr(model, search_by, None)
-        if column is not None:
-            query = query.filter(column.ilike(f"%{search_term}%"))
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid search field: {search_by}")
-        
-    if order_by:
-        column = getattr(model, order_by, None)
-        if column is not None:
-            query = query.order_by(column.desc() if descending else column.asc())
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid order_by field: {order_by}")
+          
+    query = apply_joins(query, model, joined_loads)
+    query = apply_filters(query, model, filters) # Apply filters (e.g., {"status": "active"})
+    query = apply_search(query, model, search_by, search_term)
+    query = apply_ordering(query, model, order_by, descending)
 
     total_count = query.count()
     total_pages = (total_count + page_size - 1) // page_size

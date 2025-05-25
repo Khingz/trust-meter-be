@@ -43,10 +43,10 @@ class ReviewService:
     
     def get_by_id(self, db: Session, id: str):
         """Get a review by Id"""
-        listing = db.query(Review).filter(Review.id == id).first()
-        if not listing:
-            raise HTTPException(status_code=404, detail="Listing not found")
-        return jsonable_encoder(listing)
+        review = db.query(Review).filter(Review.id == id).first()
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+        return jsonable_encoder(review)
     
     def get_listing_review_stats(self, db: Session, listing_id: UUID):
         total_reviews = db.query(func.count(Review.id)).filter(Review.listing_id == listing_id).scalar()

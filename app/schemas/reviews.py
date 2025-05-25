@@ -3,11 +3,10 @@ from pydantic import (
     StringConstraints,
     Field
 )
-from typing import Optional, Annotated
+from typing import Annotated
 from uuid import UUID
 
 
-from typing import Optional
 
 class ReviewBase(BaseModel):
     pass
