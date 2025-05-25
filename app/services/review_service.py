@@ -39,7 +39,7 @@ class ReviewService:
     
     def get_all(self, db: Session, page, page_size, search_by, search_term, filters):
         """Get all reviews"""
-        return paginate_query(db, model=Review, page=page, page_size=page_size, search_by=search_by, search_term=search_term, filters=filters, joined_loads=[Review.listings, Review.user])
+        return paginate_query(db, model=Review, page=page, page_size=page_size, search_by=search_by, search_term=search_term, filters=filters, joined_loads=[Review.listings, Review.user, Review.likes, Review.comments])
     
     def get_by_id(self, db: Session, id: str):
         """Get a review by Id"""
@@ -77,7 +77,8 @@ class ReviewService:
             like = Like(user_id=user_id, target_id=target_id, target_type="review")
             db.add(like)
             db.commit()
-            return {"message": "Liked"}
+            db.refresh(like)
+            return jsonable_encoder(like)
         
     def add_comment(self, db: Session, review_id: str, schema, user_id: str):
         """Add a comment to a review"""

@@ -7,8 +7,6 @@ from typing import List, Dict, Any, Type
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 
-
-
 def apply_joins(query, model, joined_loads):
     if not joined_loads:
         return query
