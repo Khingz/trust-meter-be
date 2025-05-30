@@ -23,4 +23,4 @@ class ReviewComment(BaseModel):
         viewonly=True
     )
 
-    user = relationship("User")
+    user = relationship("User", lazy="select", )
