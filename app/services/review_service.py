@@ -10,7 +10,7 @@ from uuid import UUID
 from app.models.review import Review
 from sqlalchemy import func
 from decimal import Decimal
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 
 class ReviewService:
@@ -99,11 +99,14 @@ class ReviewService:
         
         comment_with_user = (
             db.query(ReviewComment)
-            .options(joinedload(ReviewComment.user))
+            .options(
+                selectinload(ReviewComment.user),
+                selectinload(ReviewComment.likes)
+            )
             .filter(ReviewComment.id == comment.id)
             .first()
         )
-    
+
         return jsonable_encoder(comment_with_user)
     
     def get_comments(self, db: Session, review_id: str, page: int = 1, page_size: int = 30, search_by: str = None, search_term: str = None, filters: dict = None):
