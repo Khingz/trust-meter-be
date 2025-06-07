@@ -9,6 +9,7 @@ from app.services.user_service import user_service
 from app.utils.auth import create_access_token, verify_access_token
 from app.utils.background_task import send_email_in_background
 from app.utils.settings import settings
+from uuid import UUID
 
 auth = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -198,6 +199,24 @@ def update_user(update_schema: UserUpdate, current_user: dict = Depends(verify_a
                 )
             
         }
+    )
+    return response
+
+@auth.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+def get_user_by_id(user_id: UUID, db: Session = Depends(get_db)):
+    """Get user by ID"""
+    user = user_service.get_user_by_id(db=db, id=user_id)
+
+    response = JSONResponse(
+        status_code=200,
+        content={
+            "status_code": 200,
+            "message": "User fetched successfully",
+            "data": jsonable_encoder(
+                    user, 
+                    exclude=["password", "is_deleted", "updated_at", "password_reset_token"]
+                )
+        },
     )
     return response
 

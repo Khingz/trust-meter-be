@@ -4,6 +4,7 @@ from app.models.user import User
 from fastapi import HTTPException
 from app.utils.auth import hash_password, verify_password, create_password_token, verify_password_token
 from app.utils.settings import settings
+from uuid import UUID
 
 class UserService:
     """ User service class """
@@ -108,6 +109,13 @@ class UserService:
         user.name = schema.name
         db.commit()
         db.refresh(user)
+        return user
+    
+    def get_user_by_id(self, db: Session, id: UUID):
+        """Get user by Id"""
+        user = db.query(User).filter(User.id == id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
         return user
     
         
