@@ -53,6 +53,25 @@ def verify_access_token(access_token: str = Depends(oauth2_scheme), db: Session 
 
     return user
 
+def verify_access_token_for_ws(token: str, db: Session):
+    from app.services.user_service import user_service
+    
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.ALGORITHM]
+        )
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        user = user_service.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Error decoding token")
+
 def create_password_token(user_email: str):
     """Function to create access token"""
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, UploadFile, File
+from fastapi import FastAPI, Request, WebSocket
 import uvicorn
 from app.utils.settings import settings
 from app.routes import api_router
@@ -6,7 +6,7 @@ from fastapi.exceptions import HTTPException, RequestValidationError
 from sqlalchemy.exc import IntegrityError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.utils.cloudinary import upload_image_to_cloudinary, get_image_public_id
+from app.websockets.chat import router as websocket_router
 
 
 app = FastAPI()
@@ -34,6 +34,9 @@ def read_root():
 
 
 app.include_router(api_router)
+
+app.include_router(websocket_router)
+
 
 # Error Handlers 
 @app.exception_handler(HTTPException)
