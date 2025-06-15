@@ -32,9 +32,11 @@ async def websocket_chat(websocket: WebSocket, db: Session = Depends(get_db)):
                 data = json.loads(raw)
                 to = UUID(data.get("to"))
                 message = data.get("message")
+                print(f"[WS PARSED] To: {to}, Message: {message}")
                 if to and message:
                     await manager.send_private_message(to, message)
             except json.JSONDecodeError:
                 await websocket.send_text("Invalid message format.")
     except WebSocketDisconnect:
         manager.disconnect(user_id)
+        print(f"[WS DISCONNECT] User {user_id} disconnected.")
